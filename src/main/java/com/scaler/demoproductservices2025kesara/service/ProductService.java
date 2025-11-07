@@ -16,7 +16,7 @@ public interface ProductService {
     //    public List<Product> getallproduct() {
     //        return productRepository.findAll();
     //    }
-        //pagination
+    //pagination
     Page<Product> getallproduct(int pageNumber, int pageSize);
 
     Product createproduct(Product product);

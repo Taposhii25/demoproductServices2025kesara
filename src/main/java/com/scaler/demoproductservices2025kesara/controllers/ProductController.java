@@ -1,8 +1,11 @@
 package com.scaler.demoproductservices2025kesara.controllers;
 
+import com.scaler.demoproductservices2025kesara.dtos.Userdto;
 import com.scaler.demoproductservices2025kesara.exception.ProductNotFoundException;
+import com.scaler.demoproductservices2025kesara.exception.UnAuthorizedException;
 import com.scaler.demoproductservices2025kesara.models.Product;
 import com.scaler.demoproductservices2025kesara.service.ProductService;
+import com.scaler.demoproductservices2025kesara.util.AuthUtil;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
@@ -22,8 +25,8 @@ public class ProductController {
         this.productService = productService;
     }
 
-    @GetMapping("/{id}")
-    public Product getproductbyid(@PathVariable("id") Long id) throws ProductNotFoundException {
+    @GetMapping("/{id}/{token}")
+    public Product getproductbyid(@PathVariable("id") Long id,@PathVariable ("token") String token) throws ProductNotFoundException, UnAuthorizedException {
 
 //        ResponseEntity<Product> responseEntity = null;
 //        try{
@@ -33,7 +36,11 @@ public class ProductController {
 //            responseEntity = new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
 //        }
 
-
+// make a call to user service to validate token
+        Userdto userdto = AuthUtil.validateToken(token);
+        if(userdto == null) {
+            throw new UnAuthorizedException("you cant access this recourse,Please login first");
+        }
 
         return productService.getProductbyid(id);
         //throw new RuntimeException("Something went wrong");
