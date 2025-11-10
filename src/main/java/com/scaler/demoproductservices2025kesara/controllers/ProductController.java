@@ -21,12 +21,15 @@ import java.util.List;
 public class ProductController {
     private ProductService productService;
 
-    public ProductController(@Qualifier("SelfProductService")ProductService productService) {
+//    public ProductController(@Qualifier("SelfProductService")ProductService productService) {
+//        this.productService = productService;
+//    }
+    public ProductController(@Qualifier("FakeStoreProductService")ProductService productService) {
         this.productService = productService;
     }
 
-    @GetMapping("/{id}/{token}")
-    public Product getproductbyid(@PathVariable("id") Long id,@PathVariable ("token") String token) throws ProductNotFoundException, UnAuthorizedException {
+    @GetMapping("/{id}")
+    public Product getproductbyid(@PathVariable("id") Long id) throws ProductNotFoundException{
 
 //        ResponseEntity<Product> responseEntity = null;
 //        try{
@@ -37,10 +40,7 @@ public class ProductController {
 //        }
 
 // make a call to user service to validate token
-        Userdto userdto = AuthUtil.validateToken(token);
-        if(userdto == null) {
-            throw new UnAuthorizedException("you cant access this recourse,Please login first");
-        }
+
 
         return productService.getProductbyid(id);
         //throw new RuntimeException("Something went wrong");
@@ -49,10 +49,40 @@ public class ProductController {
     @ExceptionHandler(ProductNotFoundException.class)
     public ResponseEntity<String> producterror(ProductNotFoundException e) {
         return new ResponseEntity<>(
-                    e.getMessage(),
+                e.getMessage(),
                 HttpStatus.BAD_REQUEST
-                );
+        );
     }
+
+    //    4th class with auth
+//    @GetMapping("/{id}/{token}")
+//    public Product getproductbyid(@PathVariable("id") Long id,@PathVariable ("token") String token) throws ProductNotFoundException, UnAuthorizedException {
+//
+////        ResponseEntity<Product> responseEntity = null;
+////        try{
+////            Product product= productService.getProductbyid(id);
+////            responseEntity = new ResponseEntity<>(product, HttpStatus.OK);
+////        }catch (ProductNotFoundException e){
+////            responseEntity = new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
+////        }
+//
+//// make a call to user service to validate token
+//        Userdto userdto = AuthUtil.validateToken(token);
+//        if(userdto == null) {
+//            throw new UnAuthorizedException("you cant access this recourse,Please login first");
+//        }
+//
+//        return productService.getProductbyid(id);
+//        //throw new RuntimeException("Something went wrong");
+//        // instead of controller throw exception at service
+//    }
+//    @ExceptionHandler(ProductNotFoundException.class)
+//    public ResponseEntity<String> producterror(ProductNotFoundException e) {
+//        return new ResponseEntity<>(
+//                    e.getMessage(),
+//                HttpStatus.BAD_REQUEST
+//                );
+//    }
 
 //    @GetMapping("/{id}")
 //    public ResponseEntity<Product> getproductbyid(@PathVariable("id") Long id){

@@ -6,6 +6,7 @@ import com.scaler.demoproductservices2025kesara.models.Category;
 import com.scaler.demoproductservices2025kesara.models.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -16,10 +17,13 @@ import java.util.List;
 public class FakeStoreProductService implements ProductService {
     private RestTemplate restTemplate;
     //this service implementatiom uses fakestore to fetch product
+    private RedisTemplate<String,Object> redisTemplate;
 
 
-    public FakeStoreProductService(RestTemplate restTemplate) {
+    public FakeStoreProductService(RestTemplate restTemplate,
+                                   RedisTemplate redisTemplate) {
         this.restTemplate = restTemplate;
+        this.redisTemplate = redisTemplate;
 
     }
     /*we ceate an obj here but spring will find the value from original bean
@@ -48,6 +52,16 @@ public class FakeStoreProductService implements ProductService {
         //make a API call to fakestore and get the given id
         //'https://fakestoreapi.com/products/1'
 //        throw new RuntimeException("Something went wrong");
+        //calling to fakestore 3rd party system
+        //1st check in the redis whether the product is present or not
+        Product product = (Product) redisTemplate.opsForHash().get("PRODUCTS","PRODUCT" + productid) ;;
+
+       //CACHE HIT
+        if(product != null){//1st check if product is present there then return it
+           return product;
+        }
+
+        //cache miss
         FakeStoreProductdto fakeStoreProductdto = restTemplate.getForObject(
                 "https://fakestoreapi.com/products/" + productid,
                 FakeStoreProductdto.class);
@@ -55,7 +69,9 @@ public class FakeStoreProductService implements ProductService {
             throw new ProductNotFoundException("product with id "+ productid +" doesnot exist" );
         }
         //convert fakestore dto into product obj
-        return convertFakeProductDtoToProduct(fakeStoreProductdto);
+        product = convertFakeProductDtoToProduct(fakeStoreProductdto);
+        redisTemplate.opsForHash().put("PRODUCTS","PRODUCT"+productid,product);
+        return product;
 
 
     }
